@@ -10,7 +10,6 @@
 #import "CULHost.h"
 #import "CDVPluginResult+CULPlugin.h"
 #import "CDVInvokedUrlCommand+CULPlugin.h"
-#import "CULConfigJsonParser.h"
 
 @interface CULPlugin() {
     NSArray *_supportedHosts;
@@ -37,18 +36,6 @@
 //    
 //    [self handleUserActivity:activity];
 //}
-
-- (void)handleOpenURL:(NSNotification*)notification {
-    id url = notification.object;
-    if (![url isKindOfClass:[NSURL class]]) {
-        return;
-    }
-    
-    CULHost *host = [self findHostByURL:url];
-    if (host) {
-        [self storeEventWithHost:host originalURL:url];
-    }
-}
 
 - (BOOL)handleUserActivity:(NSUserActivity *)userActivity {
     [self localInit];
@@ -81,18 +68,8 @@
     
     _subscribers = [[NSMutableDictionary alloc] init];
     
-    // Get supported hosts from the config.xml or www/ul.json.
-    // For now priority goes to json config.
-    _supportedHosts = [self getSupportedHostsFromPreferences];
-}
-
-- (NSArray<CULHost *> *)getSupportedHostsFromPreferences {
-    NSString *jsonConfigPath = [[NSBundle mainBundle] pathForResource:@"ul" ofType:@"json" inDirectory:@"www"];
-    if (jsonConfigPath) {
-        return [CULConfigJsonParser parseConfig:jsonConfigPath];
-    }
-    
-    return [CULConfigXmlParser parse];
+    // get supported hosts from the config.xml
+    _supportedHosts = [CULConfigXmlParser parse];
 }
 
 /**
@@ -118,7 +95,7 @@
     CULHost *host = nil;
     for (CULHost *supportedHost in _supportedHosts) {
         NSPredicate *pred = [NSPredicate predicateWithFormat:@"self LIKE[c] %@", supportedHost.name];
-        if ([pred evaluateWithObject:urlComponents.host]) {
+        if ([pred evaluateWithObject: urlComponents.host]) {
             host = supportedHost;
             break;
         }

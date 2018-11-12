@@ -37,12 +37,6 @@ static NSString *const DEFAULT_SCHEME = @"http";
     }
 }
 
-- (void)addAllPaths:(NSArray<CULPath *> *)paths {
-    if (paths) {
-        [_paths addObjectsFromArray:paths];
-    }
-}
-
 - (NSArray<CULPath *> *)paths {
     return _paths;
 }
